@@ -1,12 +1,22 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:fireapp/commons/firebase_instances.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 
+
+final authService = Provider((ref) => AuthService(
+    chatCore: ref.watch(chatCore),
+    messaging: ref.watch(msg),
+    auth: ref.watch(auth),
+    storage: ref.watch(storage)
+));
 
 
 class AuthService {
@@ -47,14 +57,28 @@ class AuthService {
     required XFile  image
   }) async{
     try {
-   final ref = storage.ref().child('userImage/${image.name}');
+   final ref =  storage.ref().child('userImage/${image.name}');
    await ref.putFile(File(image.path));
+   final url = await ref.getDownloadURL();
+   final token = await messaging.getToken();
    final response = await auth.createUserWithEmailAndPassword(email: email, password: password);
-   // chatCore.createUserInFirestore();
+   chatCore.createUserInFirestore(
+     types.User(
+       id: response.user!.uid,
+       firstName: userName,
+       imageUrl: url,
+       metadata: {
+         'email': email,
+         'token': token
+       }
+     )
+   );
       return Right(true);
     } on FirebaseAuthException catch (err) {
       return Left(err.message.toString());
-    }catch (err){
+    }on FirebaseException catch (err){
+      return Left(err.message.toString());
+    } catch (err){
       return Left(err.toString());
     }
   }
