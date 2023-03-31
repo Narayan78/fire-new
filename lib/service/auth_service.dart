@@ -86,4 +86,17 @@ class AuthService {
 
 
 
+  Future<Either<String, bool>> userLogOut() async{
+    try {
+      final response = await auth.signOut();
+      return Right(true);
+    } on FirebaseAuthException catch (err) {
+      return Left(err.message.toString());
+    }catch (err){
+      return Left(err.toString());
+    }
+  }
+
+
+
 }

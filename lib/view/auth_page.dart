@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:fireapp/common_provider/other_provider.dart';
+import 'package:fireapp/commons_widgets/snack_shows.dart';
 import 'package:fireapp/models/common_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,18 +25,17 @@ class AuthPage extends ConsumerWidget {
 
     ref.listen(authProvider, (previous, next) {
       if(next.isError){
-
+SnackShow.showError(next.errText);
       }else if (next.isSuccess){
-
+        SnackShow.showSuccess('success');
       }
-
     });
-    print('build');
 
     final auth = ref.watch(authProvider);
     final isLogin = ref.watch(loginProvider);
     final mod = ref.watch(mode);
     final pass = ref.watch(passHide);
+    final image = ref.watch(imageProvider);
     return Scaffold(
       body: SafeArea(
         child: Form(
@@ -99,7 +101,7 @@ class AuthPage extends ConsumerWidget {
                         icon: Icon(pass ?Icons.lock: Icons.lock_open_sharp)
                     )
                   ),
-                  textInputAction: TextInputAction.next,
+                  textInputAction: TextInputAction.done,
                   validator: (val){
                       if(val!.isEmpty){
                         return  'password is required';
@@ -111,19 +113,61 @@ class AuthPage extends ConsumerWidget {
                   obscureText:pass ? true : false,
                   controller: passController,
                 ),
-                gapH16,
+                gapH24,
                 if(!isLogin)  InkWell(
-                    onTap: (){},
-                    child: Container()),
+                    onTap: (){
+                      Get.defaultDialog(
+                        title: 'Choose From',
+                        content: Column(
+                          children: [
+                            TextButton(onPressed: (){
+                              Navigator.of(context).pop();
+                                ref.read(imageProvider.notifier).pickImage(true);
+                            }, child: Text('Camera')),
+                            TextButton(onPressed: (){
+                              Navigator.of(context).pop();
+                                ref.read(imageProvider.notifier).pickImage(false);
+                            }, child: Text('Gallery')),
+                          ],
+                        )
+                      );
+
+                    },
+                    child: Container(
+                      height: 100,
+                      width: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white)
+                      ),
+                      child: image == null ? Center(child: Text('please select an image')) : Image.file(File(image.path)),
+                    )),
+                gapH16,
 
                 ElevatedButton(
                     onPressed:auth.isLoad ? null : (){
+                      FocusScope.of(context).unfocus();
                       _form.currentState!.save();
                       if(_form.currentState!.validate()){
-                        ref.read(authProvider.notifier).userLogin(
-                            email: mailController.text.trim(),
-                            password: passController.text.trim()
-                        );
+                        print(isLogin);
+                        if(isLogin){
+                          ref.read(authProvider.notifier).userLogin(
+                              email: mailController.text.trim(),
+                              password: passController.text.trim()
+                          );
+                        }else{
+                          if(image == null){
+                            SnackShow.showError('please select an image');
+                          }else{
+                            ref.read(authProvider.notifier).userSignUp(
+                                email: mailController.text.trim(),
+                                password: passController.text.trim(),
+                                userName: userNameController.text.trim(),
+                                image: image
+                            );
+                          }
+
+                        }
+
                       
                       }else{
                         ref.read(mode.notifier).change();
@@ -131,6 +175,17 @@ class AuthPage extends ConsumerWidget {
 
                     },
                     child:auth.isLoad ? CircularProgressIndicator(): Text('Submit')),
+
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(isLogin ?'Don\'t have an account': 'Already have an account'),
+                    TextButton(onPressed: (){
+                      ref.read(loginProvider.notifier).change();
+                    }, child: Text(isLogin ? 'Sign Up': 'Login'))
+                  ],
+                )
               ],
             ),
           ),

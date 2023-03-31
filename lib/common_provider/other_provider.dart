@@ -6,11 +6,20 @@ import 'package:image_picker/image_picker.dart';
 
 
 
-final loginProvider = StateProvider.autoDispose<bool>((ref) => true);
+final loginProvider = StateNotifierProvider<LoginProvider, bool>((ref) => LoginProvider(true));
+
+
+class LoginProvider extends StateNotifier<bool>{
+  LoginProvider(super.state);
+  void change(){
+    state = !state;
+  }
+}
+
 final passHide = StateProvider.autoDispose<bool>((ref) =>true );
 
 
-final image = StateNotifierProvider.autoDispose<ImageProvider, XFile?>((ref) => ImageProvider(null));
+final imageProvider = StateNotifierProvider.autoDispose<ImageProvider, XFile?>((ref) => ImageProvider(null));
 
 class ImageProvider extends StateNotifier<XFile?>{
   ImageProvider(super.state);
