@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fireapp/common_provider/firebase_instances.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,12 +11,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 
+final usersStream = StreamProvider.autoDispose((ref) => ref.read(chatCore).users());
+final singeUser = StreamProvider.family((ref, String id) => AuthService.getUsers(id));
 
 final authService = Provider((ref) => AuthService(
     chatCore: ref.watch(chatCore),
     messaging: ref.watch(msg),
     auth: ref.watch(auth),
-    storage: ref.watch(storage)
+    storage: ref.watch(storage),
+
 ));
 
 
@@ -30,17 +34,64 @@ class AuthService {
     required this.chatCore,
     required this.messaging,
     required this.auth,
-    required this.storage
+    required this.storage,
+
 });
+
+static final userDb = FirebaseFirestore.instance.collection('users');
+
+
+
+ static Stream<types.User> getUsers(String userId){
+return userDb.doc(userId).snapshots().map((event) {
+
+  final json = event.data() as Map<String, dynamic>;
+  return   types.User(
+        id: event.id,
+          firstName: json['firstName'],
+          metadata: {
+            'email': json['metadata']['email'],
+            'token': json['metadata']['token']
+          },
+          imageUrl: json['imageUrl']
+         );
+});
+    // return userDb.snapshots().map((event) {
+    //   return event.docs.map((e){
+    //     final json = e.data();
+    //     return   types.User(
+    //       id: e.id,
+    //       firstName: json['firstName'],
+    //       metadata: {
+    //         'email': json['metadata']['email'],
+    //         'token': json['metadata']['token']
+    //       },
+    //       imageUrl: json['imageUrl']
+    //     );
+    //   }).toList();
+
+    // });
+  }
+
+
+
 
 
    Future<Either<String, bool>> userLogin({
     required String email,
      required String password
 }) async{
-    try {
-      // final token = await messaging.getToken();
+
+     try {
+       final token = await messaging.getToken();
       final response = await auth.signInWithEmailAndPassword(email: email, password: password);
+     await userDb.doc(response.user!.uid).update({
+       'metadata': {
+         'email': email,
+         'token': token
+       }
+     });
+
       return Right(true);
     } on FirebaseAuthException catch (err) {
       return Left(err.message.toString());

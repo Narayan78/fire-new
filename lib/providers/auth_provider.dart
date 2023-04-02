@@ -8,7 +8,7 @@ import '../common_provider/firebase_instances.dart';
 
 final authProvider = StateNotifierProvider<AuthProvider, CommonState>((ref) => AuthProvider(CommonState.empty(), ref.watch(authService)));
 
-final userStream = StreamProvider((ref) => ref.read(auth).authStateChanges());
+final userStream = StreamProvider.autoDispose((ref) => ref.read(auth).authStateChanges());
 
 class AuthProvider extends StateNotifier<CommonState>{
   final AuthService service;

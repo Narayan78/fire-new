@@ -1,8 +1,6 @@
 import 'dart:async';
-
+import 'dart:math';
 import 'package:fireapp/firebase_options.dart';
-import 'package:fireapp/providers/auth_provider.dart';
-import 'package:fireapp/view/auth_page.dart';
 import 'package:fireapp/view/status_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -47,24 +45,38 @@ class Counter extends StatefulWidget {
 class _CounterState extends State<Counter> {
  StreamController numberStream = StreamController<int>();
 
- // @override
- //  void initState() {
- //    numberStream.stream.asBroadcastStream();
- //    super.initState();
- //  }
+late Stream st;
+
+
+Stream<int> getData () async* {
+
+  while(true){
+    await Future.delayed(Duration(seconds: 1));
+    yield Random().nextInt(100) + 1;
+  }
+
+}
+
+ @override
+  void initState() {
+    st = numberStream.stream.asBroadcastStream();
+    super.initState();
+  }
 
 int n = 0;
 
   @override
   Widget build(BuildContext context) {
-    // numberStream.stream.listen((event) {
-    //   print(event);
-    // });
+print('build');
+    st.listen((event) {
+      print(event);
+    });
     return Scaffold(
         body: Center(
             child:StreamBuilder(
-              stream: numberStream.stream,
+              stream:  getData(),
               builder: (context, snapshot) {
+                print(snapshot.data);
                 return Text(snapshot.data.toString());
               }
             )
