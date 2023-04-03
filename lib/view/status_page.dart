@@ -1,7 +1,7 @@
 import 'package:fireapp/view/auth_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../providers/auth_provider.dart';
 import 'home_page.dart';
 
@@ -22,6 +22,24 @@ class StatusPage extends StatelessWidget {
                       return AuthPage();
                     }else{
                       return HomePage();
+                      if(data.emailVerified){
+                        return HomePage();
+                      }else{
+                     return   Column(
+                       mainAxisAlignment: MainAxisAlignment.center,
+                       crossAxisAlignment: CrossAxisAlignment.center,
+                       children: [
+                         TextButton(onPressed: (){
+                           data.sendEmailVerification();
+                         },child: Text('Send Verify'),),
+                         TextButton(onPressed: () async{
+                           await FirebaseAuth.instance.currentUser!.reload();
+                         },child: Text('check Verify'),),
+                       ],
+                     );
+                      }
+                      data.sendEmailVerification();
+
                     }
                   },
                   error: (err, stack) => Center(child: Text('$err')),

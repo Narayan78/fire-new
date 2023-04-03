@@ -124,6 +124,7 @@ return userDb.doc(userId).snapshots().map((event) {
        }
      )
    );
+
       return Right(true);
     } on FirebaseAuthException catch (err) {
       return Left(err.message.toString());
