@@ -41,7 +41,13 @@ class Comment{
         userImage: json['userImage']
     );
   }
-
+  Map<String, dynamic> toJson(){
+    return {
+    'userName': this.userName,
+    'comment': this.comment,
+    'userImage': this.userImage
+    };
+  }
 
 }
 
@@ -53,6 +59,7 @@ class Post{
   final String title;
   final String detail;
   final String imageUrl;
+  final String imageId;
   final Like like;
   final List<Comment> comments;
 
@@ -63,7 +70,8 @@ class Post{
     required this.userId,
     required this.title,
     required this.detail,
-    required this.comments
+    required this.comments,
+    required this.imageId
 });
 
 

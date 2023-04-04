@@ -1,10 +1,6 @@
 import 'dart:io';
-
 import 'package:fireapp/common_provider/other_provider.dart';
 import 'package:fireapp/commons_widgets/snack_shows.dart';
-import 'package:fireapp/models/common_state.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

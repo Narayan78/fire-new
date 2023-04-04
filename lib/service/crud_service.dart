@@ -20,7 +20,8 @@ class CrudService {
               like: Like.fromJson(json['like']),
               imageUrl: e['imageUrl'],
               id: e.id,
-              userId: e['userId'] ,
+              userId: e['userId'],
+              imageId: e['imageId'],
               title: e['title'],
               detail: e['detail'],
               comments: (json['comments'] as List).map((e) => Comment.fromJson(e)).toList()
@@ -58,7 +59,6 @@ class CrudService {
   Future<Either<String, bool>> updatePost(
       {required String title,
       required String detail,
-      required String userId,
       required String id,
       XFile? image,
       String? imageId}) async {
@@ -132,6 +132,23 @@ class CrudService {
 
 
 
+
+
+  Future<Either<String, bool>> commentPost({
+    required String postId,
+    required Comment comment,
+  }) async {
+    try {
+      await postDb.doc(postId).update({
+          'comments':  FieldValue.arrayUnion([comment.toJson()])
+      });
+      return Right(true);
+    } on FirebaseException catch (err) {
+      return Left(err.message.toString());
+    } catch (err) {
+      return Left(err.toString());
+    }
+  }
 
 
 
